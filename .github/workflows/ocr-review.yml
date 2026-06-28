@@ -37,20 +37,8 @@ jobs:
       )
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Checkout PR head for comment triggers
-        if: github.event_name == 'issue_comment'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr checkout "${{ github.event.issue.number }}"
-
       - name: Run OCR review
-        uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@main
+        uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@test/move-checkout-into-ocr-review-action
         with:
           identifier: OCR
           llm-url: ${{ secrets.OCR_LLM_URL }}
