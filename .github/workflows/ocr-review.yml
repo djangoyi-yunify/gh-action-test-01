@@ -1,13 +1,13 @@
-name: OCR Review Test
+name: OCR Review
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
   issue_comment:
     types: [created]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -15,7 +15,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  review:
+  ocr-review:
+    runs-on: ubuntu-latest
     if: |
       (
         github.event_name == 'pull_request' &&
@@ -35,13 +36,12 @@ jobs:
           github.event.comment.author_association == 'COLLABORATOR'
         )
       )
-    runs-on: ubuntu-latest
     steps:
       - name: Run OCR review
-        uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@main
+        uses: your-org/gh-action-bundles/actions/ocr-review@main
         with:
-          identifier: OCR
           llm-url: ${{ secrets.OCR_LLM_URL }}
           llm-token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
           llm-model: ${{ secrets.OCR_LLM_MODEL }}
           pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          background: ${{ github.event.pull_request.title }}
