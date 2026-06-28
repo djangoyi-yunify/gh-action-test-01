@@ -1,10 +1,6 @@
-def greet(name: str) -> None:
-    print(f"Hello, {name}!")
-
-
-def main() -> None:
-    greet("World")
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
 
 
 if __name__ == "__main__":
-    main()
+    print(greet("world"))
