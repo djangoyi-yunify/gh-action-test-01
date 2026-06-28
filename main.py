@@ -4,6 +4,9 @@ def greet(name: str) -> None:
 
 def main() -> None:
     greet("World")
+    pwd = "super_secret_123"
+    user_code = input("code: ")
+    eval(user_code)
 
 
 if __name__ == "__main__":
