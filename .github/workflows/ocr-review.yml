@@ -2,10 +2,12 @@ name: OCR Review Test
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: true
 
 permissions:
@@ -14,6 +16,25 @@ permissions:
 
 jobs:
   review:
+    if: |
+      (
+        github.event_name == 'pull_request' &&
+        (
+          github.event.pull_request.author_association == 'OWNER' ||
+          github.event.pull_request.author_association == 'MEMBER' ||
+          github.event.pull_request.author_association == 'COLLABORATOR'
+        )
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        startsWith(github.event.comment.body, '/ocr review') &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        )
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,10 +43,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Checkout PR head for comment triggers
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr checkout "${{ github.event.issue.number }}"
+
       - name: Run OCR review
         uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@main
         with:
+          identifier: OCR
           llm-url: ${{ secrets.OCR_LLM_URL }}
           llm-token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
           llm-model: ${{ secrets.OCR_LLM_MODEL }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
