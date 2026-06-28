@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run OCR review
-        uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@test/move-checkout-into-ocr-review-action
+        uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@main
         with:
           identifier: OCR
           llm-url: ${{ secrets.OCR_LLM_URL }}
