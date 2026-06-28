@@ -3,6 +3,9 @@ name: OCR Review
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
 
 permissions:
   contents: read
@@ -12,14 +15,30 @@ jobs:
   ocr-review:
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.author_association == 'OWNER'
+      (
+        github.event_name == 'pull_request' &&
+        (
+          github.event.pull_request.author_association == 'OWNER' ||
+          github.event.pull_request.author_association == 'MEMBER' ||
+          github.event.pull_request.author_association == 'COLLABORATOR'
+        )
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        startsWith(github.event.comment.body, '/ocr review') &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        )
+      )
     steps:
-      - name: Run OCR review with invalid LLM credentials
+      - name: Run OCR review
         uses: djangoyi-yunify/gh-action-bundles/actions/ocr-review@main
         with:
-          llm-url: http://localhost:59999/invalid-llm-endpoint
-          llm-token: invalid-token-for-e2e-test
-          llm-model: invalid-model-for-e2e-test
-          pr-number: ${{ github.event.pull_request.number }}
+          llm-url: ${{ secrets.OCR_LLM_URL }}
+          llm-token: ${{ secrets.OCR_LLM_AUTH_TOKEN }}
+          llm-model: ${{ secrets.OCR_LLM_MODEL }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
           background: ${{ github.event.pull_request.title }}
