@@ -1,6 +1,1 @@
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
-
-
-if __name__ == "__main__":
-    print(greet("world"))
+undefined_magic_number = 42
